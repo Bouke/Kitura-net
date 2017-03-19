@@ -30,11 +30,11 @@ public class HTTPServerRequest: ServerRequest {
     public private(set) var httpStatusCode: HTTPStatusCode = .unknown
     
     /// Client connection socket
-    private let socket: Socket
+    private let socket: Socket?
     
     /// Server IP address pulled from socket.
     public var remoteAddress: String {
-        return socket.remoteHostname
+        return socket?.remoteHostname ?? "N.A."
     }
     
     /// HTTP Method of the request.
@@ -50,7 +50,7 @@ public class HTTPServerRequest: ServerRequest {
     public var headers: HeadersContainer { return httpParser?.headers ?? HeadersContainer() }
     
     /// socket signature of the request.
-    public var signature: Socket.Signature? { return socket.signature }
+    public var signature: Socket.Signature? { return socket?.signature }
     
     private var _url: URL?
     
@@ -139,7 +139,7 @@ public class HTTPServerRequest: ServerRequest {
     /// - Parameter httpParser: The `HTTPParser` object used to parse the incoming request
     ///
     /// - Returns: an HTTPServerRequest instance
-    init (socket: Socket, httpParser: HTTPParser?) {
+    public init (socket: Socket? = nil, httpParser: HTTPParser?) {
         self.socket = socket
         self.httpParser = httpParser
     }
@@ -190,7 +190,7 @@ public class HTTPServerRequest: ServerRequest {
     }
     
     /// Extra handling performed when a message is completely parsed
-    func parsingCompleted() {
+    public func parsingCompleted() {
         
         guard let httpParser = httpParser else {
             Log.error("Parser nil")
@@ -210,9 +210,9 @@ public class HTTPServerRequest: ServerRequest {
             }
             
             if let forwardedFor = headers["X-Forwarded-For"]?[0] {
-                Log.verbose("HTTP request forwarded for=\(forwardedFor); proto=\(headers["X-Forwarded-Proto"]?[0] ?? "N.A."); by=\(socket.remoteHostname );")
+                Log.verbose("HTTP request forwarded for=\(forwardedFor); proto=\(headers["X-Forwarded-Proto"]?[0] ?? "N.A."); by=\(socket?.remoteHostname ?? "N.A.");")
             } else {
-                Log.verbose("HTTP request from=\(socket.remoteHostname); proto=\(proto ?? "N.A.");")
+                Log.verbose("HTTP request from=\(socket?.remoteHostname ?? "N.A."); proto=\(proto ?? "N.A.");")
             }
         }
         
